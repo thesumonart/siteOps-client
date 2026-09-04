@@ -30,7 +30,7 @@
   "plugins": [
     "prettier-plugin-tailwindcss"
   ],
-  "tailwindStylesheet": "./apps/web/src/app/globals.css",
+  "tailwindStylesheet": "./src/app/globals.css",
   "tailwindFunctions": [
     "cn",
     "clsx",

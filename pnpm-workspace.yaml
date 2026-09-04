@@ -1,50 +1,12 @@
-packages:
-  - "apps/*"
-  - "packages/*"
+# This project is a single package, not a workspace — siteOps-client and
+# siteOps-server are separate repositories that meet over HTTP, and joining
+# them under one workspace is exactly what the split was for. The file exists
+# because pnpm 11 reads its settings from here rather than from package.json.
 
-# Single source of truth for dependency versions across every workspace package.
-# Referenced as `"typescript": "catalog:"` in package.json files.
-catalog:
-  # Language + tooling
-  # TypeScript is pinned to 5.9 on purpose: typescript-eslint@8 declares a
-  # `typescript >=4.8.4 <6.1.0` peer range, so TS 7 would silently disable
-  # type-aware linting. Revisit when typescript-eslint ships TS 7 support.
-  typescript: 5.9.3
-  "@types/node": 26.4.1
-  tsx: 4.23.13
-  rimraf: 6.1.3
-
-  # Lint + format
-  eslint: 10.9.1
-  typescript-eslint: 8.69.0
-  eslint-config-prettier: 10.1.8
-  globals: 17.12.0
-  prettier: 3.9.6
-  prettier-plugin-tailwindcss: 0.8.1
-
-  # Validation + shared runtime
-  zod: 4.5.4
-  date-fns: 4.4.0
-
-  # Data
-  mongoose: 9.9.4
-  # Must track the driver version mongoose depends on (~7.5), since the Db
-  # handle returned by the connection is passed straight to the auth adapter.
-  mongodb: 7.5.0
-
-  # Auth
-  better-auth: 1.7.2
-
-  # Testing
-  vitest: 4.1.11
-  "@vitest/coverage-v8": 4.1.11
-  "@playwright/test": 1.62.1
-
-# Dependencies permitted to run install scripts (pnpm >= 11). Everything else
-# is blocked, so a transitive package cannot execute code during `pnpm install`.
-# These are native toolchain packages that legitimately need a postinstall step.
+# Dependencies permitted to run install scripts. Everything else is blocked, so
+# a transitive package cannot execute code during `pnpm install`. These are
+# native toolchain packages that legitimately need a postinstall step.
 allowBuilds:
-  "@swc/core": true
   "@tailwindcss/oxide": true
   esbuild: true
   sharp: true
