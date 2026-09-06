@@ -2,9 +2,13 @@
 
 import {
   FINDING_SEVERITY_LABELS,
+  type ContentCheckData,
   type DomainCheckData,
+  type LinksCheckData,
   type MonitorFinding,
   type MonitorResultDto,
+  type PerformanceCheckData,
+  type SeoCheckData,
   type SslCheckData,
 } from '@/contracts';
 import type * as React from 'react';
@@ -82,6 +86,10 @@ function Facts({ result }: { readonly result: MonitorResultDto }): React.ReactEl
 
   if (data.type === 'ssl') return <SslFacts data={data} />;
   if (data.type === 'domain') return <DomainFacts data={data} />;
+  if (data.type === 'performance') return <PerformanceFacts data={data} />;
+  if (data.type === 'seo') return <SeoFacts data={data} />;
+  if (data.type === 'content') return <ContentFacts data={data} />;
+  if (data.type === 'links') return <LinksFacts data={data} />;
 
   return null;
 }
@@ -144,5 +152,106 @@ function DomainFacts({ data }: { readonly data: DomainCheckData }): React.ReactE
         ['Source', data.source],
       ]}
     />
+  );
+}
+
+/** Milliseconds, or an em dash when the provider could not measure it. */
+function formatMs(value: number | null): string {
+  if (value === null) return '—';
+  return value < 1000 ? `${String(value)} ms` : `${(value / 1000).toFixed(2)} s`;
+}
+
+function formatBytes(value: number | null): string {
+  if (value === null) return '—';
+  return value < 1_048_576
+    ? `${String(Math.round(value / 1024))} KB`
+    : `${(value / 1_048_576).toFixed(2)} MB`;
+}
+
+function formatScore(value: number | null): string {
+  return value === null ? '—' : `${String(value)}/100`;
+}
+
+function PerformanceFacts({ data }: { readonly data: PerformanceCheckData }): React.ReactElement {
+  return (
+    <>
+      <FactList
+        entries={[
+          ['Performance', formatScore(data.performanceScore)],
+          ['Largest Contentful Paint', formatMs(data.largestContentfulPaintMs)],
+          ['Time to first byte', formatMs(data.timeToFirstByteMs)],
+          ['Page weight', formatBytes(data.totalBytes)],
+          ['Accessibility', formatScore(data.accessibilityScore)],
+          ['Best practices', formatScore(data.bestPracticesScore)],
+        ]}
+      />
+      {/*
+        Named explicitly, because a synthetic score and a Lighthouse score are
+        not the same number and must not be compared with each other.
+      */}
+      <p className="mt-2 text-xs text-muted-foreground">
+        {data.source === 'pagespeed'
+          ? `Measured by Google PageSpeed Insights (${data.strategy}), using real Lighthouse.`
+          : `Measured from our server (${data.strategy}). Lighthouse scores and Core Web Vitals need a real browser, so they are not reported — add a PageSpeed API key for those.`}
+      </p>
+    </>
+  );
+}
+
+function SeoFacts({ data }: { readonly data: SeoCheckData }): React.ReactElement {
+  return (
+    <FactList
+      entries={[
+        ['Score', `${String(data.score)}/100`],
+        ['Indexable', data.indexable ? 'Yes' : 'No'],
+        ['Title', data.title ?? 'Missing'],
+        ['Meta description', data.metaDescription ? 'Present' : 'Missing'],
+        ['Images without alt', `${String(data.imagesMissingAlt)} of ${String(data.imageCount)}`],
+        ['Words', String(data.wordCount)],
+      ]}
+    />
+  );
+}
+
+function ContentFacts({ data }: { readonly data: ContentCheckData }): React.ReactElement {
+  return (
+    <>
+      <FactList
+        entries={[
+          ['Changed', data.changed ? 'Yes' : 'No'],
+          [
+            'How much',
+            data.changeRatio === null ? '—' : `${String(Math.round(data.changeRatio * 100))}%`,
+          ],
+          ['Lines added', String(data.addedLineCount)],
+          ['Lines removed', String(data.removedLineCount)],
+        ]}
+      />
+      {data.excerpt ? (
+        <pre className="mt-3 max-h-48 overflow-auto rounded-md border bg-background p-3 text-xs whitespace-pre-wrap">
+          {data.excerpt}
+        </pre>
+      ) : null}
+    </>
+  );
+}
+
+function LinksFacts({ data }: { readonly data: LinksCheckData }): React.ReactElement {
+  return (
+    <>
+      <FactList
+        entries={[
+          ['Pages crawled', String(data.pagesCrawled)],
+          ['Links checked', String(data.linksChecked)],
+          ['Broken', String(data.brokenCount)],
+          ['Coverage', data.truncated ? 'Stopped at the limit' : 'Whole site'],
+        ]}
+      />
+      {data.brokenCount > data.brokenLinks.length ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          Showing the first {String(data.brokenLinks.length)} of {String(data.brokenCount)}.
+        </p>
+      ) : null}
+    </>
   );
 }
