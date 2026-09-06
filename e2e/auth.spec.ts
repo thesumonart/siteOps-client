@@ -85,7 +85,10 @@ test.describe('authentication', () => {
     await signIn(page, account);
     await expect(page).toHaveURL(/\/dashboard/);
 
-    await page.getByRole('button', { name: /sign out/i }).click();
+    // Sign out lives in the account menu at the foot of the sidebar, beside
+    // profile and billing — the account-level destinations belong together.
+    await page.getByRole('button', { name: /account menu/i }).click();
+    await page.getByRole('menuitem', { name: /sign out/i }).click();
     await expect(page).toHaveURL(/\/login|\/$/);
 
     await page.goto('/dashboard');

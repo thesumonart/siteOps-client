@@ -6,6 +6,7 @@ import {
   Bell,
   Globe,
   Briefcase,
+  CreditCard,
   FileText,
   LayoutDashboard,
   Menu,
@@ -18,8 +19,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
+import { AccountMenu } from '@/components/layout/account-menu';
 import { OrganizationSwitcher } from '@/components/layout/organization-switcher';
-import { SignOutButton } from '@/components/layout/sign-out-button';
 import { syncActiveOrganizationCookie } from '@/lib/active-organization';
 import { cn } from '@/lib/utils';
 
@@ -58,6 +59,19 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: 'Audit log',
     icon: ScrollText,
     permission: 'audit_log:read',
+  },
+  /*
+   * Billing sits at the foot of the list, after the day-to-day screens, because
+   * it is visited rarely and by one role. It is *in* the list rather than only
+   * in the account menu because a subscription that can be reached solely by
+   * knowing a URL is a subscription nobody upgrades — which is exactly the
+   * state this navigation was in before.
+   */
+  {
+    href: '/dashboard/billing',
+    label: 'Billing',
+    icon: CreditCard,
+    permission: 'billing:read',
   },
 ];
 
@@ -157,11 +171,7 @@ export function DashboardShell({
       </nav>
 
       <div className="border-t pt-3">
-        <p className="truncate px-2 text-sm font-medium">{user.name}</p>
-        <p className="truncate px-2 text-xs text-muted-foreground">{user.email}</p>
-        <div className="mt-1.5">
-          <SignOutButton />
-        </div>
+        <AccountMenu user={user} permissions={permissions} />
       </div>
     </div>
   );

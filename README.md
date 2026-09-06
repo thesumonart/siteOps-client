@@ -83,6 +83,37 @@ internals. Its tests came across with it, so a bad port fails here rather than i
 trade against publishing the package to a registry and depending on a version from both sides; that
 becomes the better deal once the contract changes often enough for drift to be likely.
 
+## Where subscriptions live
+
+Billing was the last part of the product to be reachable, so it is worth stating where each surface
+is rather than leaving it to be discovered:
+
+| Surface                             | Route                 | Who sees it                            |
+| ----------------------------------- | --------------------- | -------------------------------------- |
+| Pricing section on the landing page | `/` (`#pricing`)      | Anyone                                 |
+| Pricing page                        | `/pricing`            | Anyone                                 |
+| Billing and subscription            | `/dashboard/billing`  | An organization owner (`billing:read`) |
+| Profile and password                | `/dashboard/profile`  | Anyone signed in                       |
+| Alert preferences                   | `/dashboard/settings` | A member with `notification:read`      |
+
+Billing is reachable two ways from inside the app — a **Billing** item in the sidebar and
+**Billing & subscription** in the account menu at the foot of it — because a subscription that can
+only be found by typing a URL is one nobody upgrades.
+
+The plans, prices, limits and features all come from `GET /api/billing/plans`, which serves the
+same table the API enforces. Nothing about a plan is written into this repository: a price in a
+component would be a number that drifts from what a customer is actually charged. The same
+`PricingTable` renders the public page and the billing screen, so a plan cannot be described one way
+to a visitor and another to a customer.
+
+Checkout and the management portal are hosted by the payment provider. This app never renders a
+card field, and the return from checkout is a redirect target rather than proof of payment — the
+plan changes when a signed webhook reaches the API, which is why the billing screen briefly polls
+after a successful checkout instead of assuming.
+
+Where the API has no payment provider configured, the billing page says so and the plan cards fall
+back to "Contact us". That is a supported deployment, not a broken one.
+
 ## Commands
 
 | Command             | What it does                                  |
@@ -111,7 +142,7 @@ a filesystem would only work on a machine where both happen to be checked out si
 Start one against a throwaway database, from a checkout of `siteOps-server`:
 
 ```bash
-pnpm --filter @siteops/api... build
+pnpm build
 
 NODE_ENV=test PORT=4100 \
 APP_URL=http://localhost:3100 API_URL=http://localhost:4100 \
@@ -119,7 +150,8 @@ MONGODB_URI='mongodb://localhost:27017/siteops_e2e?replicaSet=rs0&directConnecti
 MONGODB_AUTO_INDEX=true \
 AUTH_SECRET=e2e-only-auth-secret-value-not-used-anywhere-else \
 LOG_LEVEL=warn AUTH_RATE_LIMIT_MAX_REQUESTS=1000 RATE_LIMIT_MAX_REQUESTS=5000 \
-node apps/api/dist/main.js
+SESSION_RATE_LIMIT_MAX_REQUESTS=5000 \
+node dist/server.js
 ```
 
 Then, here:
@@ -128,6 +160,11 @@ Then, here:
 pnpm exec playwright install --with-deps chromium   # first run only
 pnpm test:e2e
 ```
+
+`SESSION_RATE_LIMIT_MAX_REQUESTS` matters more than it looks. `GET /api/session` is capped at 60 a
+minute per address in production; every dashboard render hits it twice, and the whole suite arrives
+from one address. Left at the default, the last spec in a full run fails with a rendered server
+error rather than an assertion — the layout's session fetch is what gets refused.
 
 `E2E_API_URL`, `E2E_MONGODB_URI` and `E2E_AUTH_SECRET` override the defaults; the secret has to
 match the `AUTH_SECRET` the API was started with, because the suite mints the email-verification

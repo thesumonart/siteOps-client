@@ -86,3 +86,39 @@ export async function fetchSession(headers?: Record<string, string>): Promise<Se
   });
   return result.user === null ? null : result;
 }
+
+/**
+ * Updates the signed-in user's profile.
+ *
+ * Only the display name. Email is deliberately absent: changing it means
+ * re-proving the new address, and until that flow exists a form that appeared
+ * to change it would either silently fail or leave an account whose alerts go
+ * to an address nobody has confirmed. The API accepts nothing else here.
+ */
+export async function updateProfile(input: { readonly name: string }): Promise<AuthUserPayload> {
+  const result = await apiRequest<{ user?: AuthUserPayload; status?: boolean }>(
+    '/api/auth/update-user',
+    { method: 'POST', body: input },
+  );
+  // Better Auth answers `{ status: true }` for this route rather than echoing
+  // the user, so the caller refetches the session instead of trusting a body.
+  return result.user ?? { id: '', name: input.name, email: '', emailVerified: false };
+}
+
+/**
+ * Changes the password, ending every other session.
+ *
+ * `revokeOtherSessions` is not optional here and is not offered as a checkbox:
+ * the common reason to change a password is that someone else may have it, and
+ * a flow that leaves their session alive does not solve the problem it was
+ * opened to solve.
+ */
+export async function changePassword(input: {
+  readonly currentPassword: string;
+  readonly newPassword: string;
+}): Promise<void> {
+  await apiRequest('/api/auth/change-password', {
+    method: 'POST',
+    body: { ...input, revokeOtherSessions: true },
+  });
+}

@@ -80,6 +80,12 @@ pnpm format:check
 
 ## Conventions
 
+**Nothing about a plan is written here.** Prices, limits and features come from
+`GET /api/billing/plans`; the same `PricingTable` renders the public pricing page and the billing
+screen, so the two cannot describe a plan differently. A price in a component is a number that
+drifts from what a customer is charged. The return from checkout is a redirect target, never proof
+of payment — the plan changes when a signed webhook reaches the API.
+
 **No business logic in components.** Rules live behind the API. A component decides what to render,
 not what is allowed — permissions come from the server as a `Permission[]` and are checked with
 `permissionsFor`, never by comparing role names.

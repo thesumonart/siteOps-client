@@ -22,6 +22,7 @@ export * from './api/errors';
 export * from './api/pagination';
 
 export * from './domain/audit';
+export * from './domain/billing';
 export * from './domain/check';
 export * from './domain/client';
 export * from './domain/incident';
@@ -35,6 +36,7 @@ export * from './domain/website';
 
 export * from './schemas/audit';
 export * from './schemas/auth';
+export * from './schemas/billing';
 export * from './schemas/client';
 export * from './schemas/common';
 export * from './schemas/monitor';
