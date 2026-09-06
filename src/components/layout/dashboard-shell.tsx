@@ -5,6 +5,7 @@ import {
   Activity,
   Bell,
   Globe,
+  Briefcase,
   FileText,
   LayoutDashboard,
   Menu,
@@ -44,6 +45,7 @@ const NAV_ITEMS: readonly NavItem[] = [
     permission: 'incident:read',
   },
   { href: '/dashboard/members', label: 'Members', icon: Users, permission: 'member:read' },
+  { href: '/dashboard/clients', label: 'Clients', icon: Briefcase, permission: 'client:read' },
   { href: '/dashboard/reports', label: 'Reports', icon: FileText, permission: 'report:read' },
   {
     href: '/dashboard/settings',
@@ -64,6 +66,16 @@ export interface DashboardShellProps {
   readonly memberships: readonly OrganizationMembershipDto[];
   readonly activeOrganizationId: string;
   readonly permissions: readonly Permission[];
+  /**
+   * True when the active membership is a client contact rather than a member of
+   * the agency.
+   *
+   * Changes the wording, not the access — a client's navigation is already
+   * empty of everything they cannot reach, because each item declares the
+   * permission it needs and they hold almost none. This is what makes the
+   * portal read as *theirs* rather than as a stripped-down agency dashboard.
+   */
+  readonly isClientPortal?: boolean;
   readonly children: React.ReactNode;
 }
 
@@ -72,6 +84,7 @@ export function DashboardShell({
   memberships,
   activeOrganizationId,
   permissions,
+  isClientPortal = false,
   children,
 }: DashboardShellProps): React.ReactElement {
   const pathname = usePathname();
@@ -102,6 +115,15 @@ export function DashboardShell({
   const visibleItems = NAV_ITEMS.filter(
     (item) => item.permission === undefined || permissions.includes(item.permission),
   );
+
+  /*
+   * A client sees the agency's name, not ours. The portal is the agency's
+   * product as far as their customer is concerned, and the branding settings
+   * that go further are applied server-side where the plan can gate them.
+   */
+  const activeOrganizationName = isClientPortal
+    ? memberships.find((entry) => entry.organization.id === activeOrganizationId)?.organization.name
+    : null;
 
   const sidebar = (
     <div className="flex h-full flex-col gap-1 p-3">
@@ -167,7 +189,7 @@ export function DashboardShell({
         </button>
         <span className="flex items-center gap-2 font-semibold tracking-tight">
           <Activity className="size-5 text-primary" aria-hidden="true" />
-          SiteOps
+          {activeOrganizationName ?? 'SiteOps'}
         </span>
       </header>
 

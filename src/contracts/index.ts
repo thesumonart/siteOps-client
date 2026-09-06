@@ -23,6 +23,7 @@ export * from './api/pagination';
 
 export * from './domain/audit';
 export * from './domain/check';
+export * from './domain/client';
 export * from './domain/incident';
 export * from './domain/monitor';
 export * from './domain/notification';
@@ -34,6 +35,7 @@ export * from './domain/website';
 
 export * from './schemas/audit';
 export * from './schemas/auth';
+export * from './schemas/client';
 export * from './schemas/common';
 export * from './schemas/monitor';
 export * from './schemas/monitoring';

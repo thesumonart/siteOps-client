@@ -1,4 +1,4 @@
-import { permissionsFor } from '@/contracts';
+import { isInternalRole, permissionsFor } from '@/contracts';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 
@@ -57,6 +57,7 @@ export default async function DashboardLayout({
       memberships={session.memberships}
       activeOrganizationId={activeOrganizationId}
       permissions={permissionsFor(active.role)}
+      isClientPortal={!isInternalRole(active.role)}
     >
       {children}
     </DashboardShell>

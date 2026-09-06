@@ -1,4 +1,9 @@
-import type { OrganizationMembershipDto, OrganizationMemberDto } from '@/contracts';
+import type {
+  AssignableRole,
+  OrganizationMembershipDto,
+  OrganizationMemberDto,
+  OrganizationRole,
+} from '@/contracts';
 
 import { apiRequest } from './api-client';
 
@@ -7,7 +12,7 @@ import { apiRequest } from './api-client';
 export interface PendingInvitation {
   readonly id: string;
   readonly email: string;
-  readonly role: 'owner' | 'admin' | 'member';
+  readonly role: OrganizationRole;
   readonly invitedByName: string;
   readonly expiresAt: string;
   readonly createdAt: string;
@@ -31,7 +36,7 @@ export async function fetchMembers(organizationId: string): Promise<MembersView>
 
 export async function inviteMember(
   organizationId: string,
-  input: { readonly email: string; readonly role: 'admin' | 'member' },
+  input: { readonly email: string; readonly role: AssignableRole },
 ): Promise<PendingInvitation> {
   return apiRequest<PendingInvitation>(`/api/organizations/${organizationId}/members`, {
     method: 'POST',
@@ -42,7 +47,7 @@ export async function inviteMember(
 export async function updateMemberRole(
   organizationId: string,
   memberId: string,
-  role: 'owner' | 'admin' | 'member',
+  role: OrganizationRole,
 ): Promise<OrganizationMemberDto> {
   return apiRequest<OrganizationMemberDto>(
     `/api/organizations/${organizationId}/members/${memberId}`,

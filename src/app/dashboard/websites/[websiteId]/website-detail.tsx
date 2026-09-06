@@ -33,6 +33,7 @@ import { ApiError } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import { deleteWebsite, fetchWebsite, setWebsiteMonitoring, updateWebsite } from '@/lib/websites';
 import { cn } from '@/lib/utils';
+import { ClientAssignment } from './client-assignment';
 import { MonitorsPanel } from './monitors-panel';
 import { WebsiteMonitoring } from './website-monitoring';
 
@@ -239,6 +240,13 @@ export function WebsiteDetail({
         organizationId={organizationId}
         websiteId={websiteId}
         canConfigure={canToggle}
+      />
+
+      <ClientAssignment
+        organizationId={organizationId}
+        websiteId={websiteId}
+        clientId={website.clientId}
+        canAssign={canUpdate}
       />
 
       <section aria-labelledby="settings-heading" className="rounded-xl border">
