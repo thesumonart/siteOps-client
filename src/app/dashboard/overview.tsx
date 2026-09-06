@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { queryKeys } from '@/lib/query-keys';
 import { fetchDashboardStats, fetchIncidents } from '@/lib/monitoring';
+import { MonitorHealth } from './monitor-health';
 
 export interface OverviewProps {
   readonly organizationId: string;
@@ -137,6 +138,8 @@ export function Overview({ organizationId, canAddWebsite }: OverviewProps): Reac
           ))}
         </ul>
       </section>
+
+      <MonitorHealth organizationId={organizationId} />
 
       <section aria-labelledby="recent-incidents-heading" className="rounded-xl border">
         <div className="flex items-center justify-between gap-3 border-b px-5 py-4">

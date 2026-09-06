@@ -33,6 +33,7 @@ import { ApiError } from '@/lib/api-client';
 import { queryKeys } from '@/lib/query-keys';
 import { deleteWebsite, fetchWebsite, setWebsiteMonitoring, updateWebsite } from '@/lib/websites';
 import { cn } from '@/lib/utils';
+import { MonitorsPanel } from './monitors-panel';
 import { WebsiteMonitoring } from './website-monitoring';
 
 export interface WebsiteDetailProps {
@@ -233,6 +234,12 @@ export function WebsiteDetail({
       </div>
 
       <WebsiteMonitoring organizationId={organizationId} websiteId={websiteId} />
+
+      <MonitorsPanel
+        organizationId={organizationId}
+        websiteId={websiteId}
+        canConfigure={canToggle}
+      />
 
       <section aria-labelledby="settings-heading" className="rounded-xl border">
         <div className="border-b px-5 py-4">
