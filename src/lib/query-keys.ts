@@ -29,6 +29,12 @@ export const queryKeys = {
     ['organizations', organizationId, 'monitors', monitorId, 'results', filters ?? {}] as const,
   monitorSummary: (organizationId: string) =>
     ['organizations', organizationId, 'monitors', 'summary'] as const,
+  reports: (organizationId: string, filters?: Record<string, unknown>) =>
+    ['organizations', organizationId, 'reports', filters ?? {}] as const,
+  report: (organizationId: string, reportId: string) =>
+    ['organizations', organizationId, 'reports', reportId] as const,
+  reportSchedules: (organizationId: string) =>
+    ['organizations', organizationId, 'report-schedules'] as const,
   entitlements: (organizationId: string) =>
     ['organizations', organizationId, 'entitlements'] as const,
   auditLogs: (organizationId: string, filters?: Record<string, unknown>) =>

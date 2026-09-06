@@ -28,6 +28,7 @@ export * from './domain/monitor';
 export * from './domain/notification';
 export * from './domain/permissions';
 export * from './domain/plan';
+export * from './domain/report';
 export * from './domain/roles';
 export * from './domain/website';
 
@@ -38,6 +39,7 @@ export * from './schemas/monitor';
 export * from './schemas/monitoring';
 export * from './schemas/notification';
 export * from './schemas/organization';
+export * from './schemas/report';
 export * from './schemas/website';
 
 export * from './url/ip';

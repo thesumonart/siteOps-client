@@ -5,6 +5,7 @@ import {
   Activity,
   Bell,
   Globe,
+  FileText,
   LayoutDashboard,
   Menu,
   ScrollText,
@@ -43,6 +44,7 @@ const NAV_ITEMS: readonly NavItem[] = [
     permission: 'incident:read',
   },
   { href: '/dashboard/members', label: 'Members', icon: Users, permission: 'member:read' },
+  { href: '/dashboard/reports', label: 'Reports', icon: FileText, permission: 'report:read' },
   {
     href: '/dashboard/settings',
     label: 'Notifications',
