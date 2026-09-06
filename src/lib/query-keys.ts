@@ -23,4 +23,10 @@ export const queryKeys = {
     ['organizations', organizationId, 'incidents', filters ?? {}] as const,
   notificationSettings: (organizationId: string) =>
     ['organizations', organizationId, 'notification-settings'] as const,
+  entitlements: (organizationId: string) =>
+    ['organizations', organizationId, 'entitlements'] as const,
+  auditLogs: (organizationId: string, filters?: Record<string, unknown>) =>
+    ['organizations', organizationId, 'audit-logs', filters ?? {}] as const,
+  auditActors: (organizationId: string) =>
+    ['organizations', organizationId, 'audit-logs', 'actors'] as const,
 } as const;

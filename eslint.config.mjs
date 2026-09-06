@@ -165,5 +165,15 @@ export default tseslint.config(
     files: ['**/*.js', '**/*.mjs', '**/*.cjs'],
     ...tseslint.configs.disableTypeChecked,
   },
+  {
+    // Developer scripts run under Node directly, outside the bundle and outside
+    // any tsconfig, so they need Node globals and none of the browser rules.
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: globals.node },
+    rules: {
+      'no-console': 'off',
+      'no-restricted-properties': 'off',
+    },
+  },
   prettier,
 );

@@ -1,25 +1,20 @@
 /**
- * The API contract this app is written against.
+ * The SiteOps API contract.
  *
- * SiteOps is two projects — this frontend and siteOps-server — that meet only
- * over HTTP. Everything here describes what crosses that boundary: the response
- * envelope, the DTOs the API returns, the Zod schemas both sides validate a
- * request body with, and the domain vocabulary (roles, plans, statuses) the two
- * have to agree on to mean the same thing.
+ * SiteOps is two projects — this backend and the `siteOps-client` dashboard —
+ * that meet only over HTTP. Everything in this directory describes what crosses
+ * that boundary: the response envelope, the DTOs the API returns, the Zod
+ * schemas both sides validate a request body with, and the domain vocabulary
+ * (roles, plans, statuses) the two have to agree on to mean the same thing.
  *
- * It mirrors `packages/shared` in siteOps-server, which is the source of truth.
- * That package is deliberately platform-neutral — no Node built-ins, no
- * database types, nothing but TypeScript and Zod — which is what makes it safe
- * to carry a copy here rather than reaching across a filesystem boundary the
- * two deployments do not share. Server-only parts of it, the outgoing-email
- * templates, are not copied.
+ * **This directory is the source of truth.** `siteOps-client/src/contracts` is
+ * a copy of it. Change it here first, then port the change there, and let the
+ * tests that live alongside each module say whether the port was faithful.
  *
- * Keeping a copy is a deliberate trade. The alternative is publishing the
- * package to a registry and depending on a version from both sides, which is
- * the right move once the contract changes often enough that drift becomes
- * likely. Until then: change it in siteOps-server first, then port the change
- * here, and let the tests in this directory — they came across with the code —
- * say whether the port was faithful.
+ * The copy is safe only because every module here is platform-neutral — no Node
+ * built-ins, no database types, nothing but TypeScript and Zod. Anything that
+ * cannot survive in a browser does not belong in this directory; put it in
+ * `src/utils`, `src/email` or the layer that needs it.
  */
 
 export * from './api/dto';
@@ -35,6 +30,7 @@ export * from './domain/plan';
 export * from './domain/roles';
 export * from './domain/website';
 
+export * from './schemas/audit';
 export * from './schemas/auth';
 export * from './schemas/common';
 export * from './schemas/monitoring';

@@ -19,6 +19,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "contracts:sync": "node scripts/sync-contracts.mjs",
+    "contracts:check": "node scripts/sync-contracts.mjs --check",
     "test:e2e:ui": "playwright test --ui",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,cjs,mts,json,md,yml,yaml,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,cjs,mts,json,md,yml,yaml,css}\"",

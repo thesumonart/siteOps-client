@@ -7,6 +7,7 @@ import {
   Globe,
   LayoutDashboard,
   Menu,
+  ScrollText,
   TriangleAlert,
   Users,
   X,
@@ -47,6 +48,12 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: 'Notifications',
     icon: Bell,
     permission: 'notification:read',
+  },
+  {
+    href: '/dashboard/audit-logs',
+    label: 'Audit log',
+    icon: ScrollText,
+    permission: 'audit_log:read',
   },
 ];
 
