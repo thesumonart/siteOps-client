@@ -169,8 +169,55 @@ describe('PricingTable — billing mode', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: /Upgrade to Professional/ })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Checkout unavailable' })).toBeDisabled();
     expect(screen.getByText(/Checkout is not available on this deployment/)).toBeInTheDocument();
+  });
+
+  it('never offers email as the purchase path when billing is simply not set up', () => {
+    /*
+     * The exact production state: no provider configured, so the API reports
+     * every plan as unpurchasable. The card used to fall through to the
+     * "no configured price for this tier" branch and render a `mailto:` link,
+     * so someone clicking "Upgrade" got a mail client instead of a checkout.
+     *
+     * "Contact us" is a sales answer to "we do not sell this tier". It is the
+     * wrong answer to "billing is not configured", which is an operator
+     * problem — and dressing one up as the other is how a broken deployment
+     * looks like a deliberate pricing decision.
+     */
+    render(
+      <PricingTable
+        catalog={catalog(
+          [
+            entry('free', { purchasable: false }),
+            entry('starter', { purchasable: false }),
+            entry('agency', { purchasable: false }),
+          ],
+          false,
+        )}
+        currentPlan="free"
+        onChoose={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole('link', { name: 'Contact us' })).not.toBeInTheDocument();
+    expect(document.querySelector('a[href^="mailto:"]')).toBeNull();
+    expect(screen.getAllByRole('button', { name: 'Checkout unavailable' })).toHaveLength(2);
+  });
+
+  it('still offers contact for an unsold tier on a deployment that does sell others', () => {
+    // The distinction the fix turns on: billing works here, this one tier is
+    // not sold, and a sales conversation is the genuine next step.
+    render(
+      <PricingTable
+        catalog={catalog([entry('free'), entry('starter'), entry('pro', { purchasable: false })])}
+        currentPlan="free"
+        onChoose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('link', { name: 'Contact us' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Upgrade to Professional/ })).toBeEnabled();
   });
 
   it('offers contact rather than a dead button for a plan with no configured price', () => {

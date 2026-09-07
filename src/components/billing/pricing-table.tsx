@@ -335,8 +335,31 @@ function PlanCta({
     );
   }
 
-  // A plan the backend defines but this deployment has no price for. Saying so
-  // is more useful than a button that would fail at the provider.
+  /*
+   * No payment provider at all on this deployment.
+   *
+   * Checked *before* `purchasable`, and that ordering is the whole point. When
+   * nothing is configured every plan is unpurchasable, so the branch below used
+   * to fire for all of them and turn every single upgrade button into a
+   * `mailto:` link — which is what someone clicking "Upgrade" actually got: a
+   * mail client, not a checkout. "Contact us" is a sales answer to "we don't
+   * sell this tier here". It is the wrong answer to "billing isn't set up yet",
+   * which is an operator problem and needs to read as one.
+   *
+   * The banner above the table explains the state; this button just stops
+   * pretending there is somewhere to go.
+   */
+  if (!billingConfigured && entry.plan !== 'free') {
+    return (
+      <Button variant="outline" className="w-full" disabled>
+        Checkout unavailable
+      </Button>
+    );
+  }
+
+  // A plan the backend defines but this deployment has no price for, on a
+  // deployment that does sell other plans. Saying so is more useful than a
+  // button that would fail at the provider.
   if (!entry.purchasable && entry.plan !== 'free') {
     return (
       <Button variant="outline" className="w-full" asChild>
