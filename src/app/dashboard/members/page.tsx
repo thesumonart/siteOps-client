@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { ACTIVE_ORGANIZATION_COOKIE, resolveActiveOrganizationId } from '@/lib/active-organization';
 import { fetchSession } from '@/lib/auth';
+import { PageContainer } from '@/components/layout/page-container';
 import { MembersView } from './members-view';
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default async function MembersPage(): Promise<React.ReactElement> {
   if (!active || activeId === null) redirect('/onboarding');
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+    <PageContainer>
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Members</h1>
         <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
@@ -40,6 +41,6 @@ export default async function MembersPage(): Promise<React.ReactElement> {
         permissions={permissionsFor(active.role)}
         currentUserId={session.user.id}
       />
-    </div>
+    </PageContainer>
   );
 }

@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { ACTIVE_ORGANIZATION_COOKIE, resolveActiveOrganizationId } from '@/lib/active-organization';
 import { fetchSession } from '@/lib/auth';
+import { PageContainer } from '@/components/layout/page-container';
 import { Overview } from './overview';
 
 export const metadata: Metadata = {
@@ -36,7 +37,7 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
   const permissions = permissionsFor(active.role);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+    <PageContainer>
       <header className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight">{active.organization.name}</h1>
         <p className="mt-1.5 text-sm text-muted-foreground">
@@ -48,6 +49,6 @@ export default async function DashboardPage(): Promise<React.ReactElement> {
         organizationId={active.organization.id}
         canAddWebsite={permissions.includes('website:create')}
       />
-    </div>
+    </PageContainer>
   );
 }

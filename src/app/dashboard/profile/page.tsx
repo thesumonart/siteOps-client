@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 
 import { Badge } from '@/components/ui/badge';
 import { fetchSession } from '@/lib/auth';
+import { PageContainer } from '@/components/layout/page-container';
 import { ChangePasswordForm } from './change-password-form';
 import { ProfileForm } from './profile-form';
 
@@ -31,7 +32,7 @@ export default async function ProfilePage(): Promise<React.ReactElement> {
   if (!session) redirect('/login?next=%2Fdashboard%2Fprofile');
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+    <PageContainer>
       <header className="mb-8">
         <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
         <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
@@ -96,6 +97,6 @@ export default async function ProfilePage(): Promise<React.ReactElement> {
           </ul>
         </section>
       </div>
-    </div>
+    </PageContainer>
   );
 }

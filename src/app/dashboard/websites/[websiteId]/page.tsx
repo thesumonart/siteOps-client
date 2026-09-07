@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { ACTIVE_ORGANIZATION_COOKIE, resolveActiveOrganizationId } from '@/lib/active-organization';
 import { fetchSession } from '@/lib/auth';
+import { PageContainer } from '@/components/layout/page-container';
 import { WebsiteDetail } from './website-detail';
 
 export const metadata: Metadata = {
@@ -33,13 +34,13 @@ export default async function WebsiteDetailPage({
   if (!active || activeId === null) redirect('/onboarding');
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-10">
+    <PageContainer>
       <WebsiteDetail
         organizationId={activeId}
         websiteId={websiteId}
         permissions={permissionsFor(active.role)}
         minIntervalSeconds={limitsFor(active.organization.plan).minMonitoringIntervalSeconds}
       />
-    </div>
+    </PageContainer>
   );
 }

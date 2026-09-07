@@ -75,6 +75,34 @@ const NAV_ITEMS: readonly NavItem[] = [
   },
 ];
 
+/**
+ * Routes that render at full width with no sidebar at all.
+ *
+ * These are the screens someone opens to do one thing and then leaves: read a
+ * report, compare plans, study one website's history. The navigation is
+ * overhead on all three — and the sidebar costs 256px of exactly the width the
+ * tables and charts on them need most.
+ *
+ * The sidebar is *not rendered* on these routes rather than hidden. A hidden
+ * `<aside>` that keeps its track in the flex row leaves a 256px gap where the
+ * navigation used to be, which is worse than leaving it there — it looks like
+ * a rendering bug rather than a layout.
+ *
+ * Prefix matching, except for websites: `/dashboard/websites` is the list and
+ * keeps its sidebar, while `/dashboard/websites/<id>` is the detail view and
+ * does not. Matching by prefix there would take the sidebar off both.
+ */
+const STANDALONE_PREFIXES: readonly string[] = ['/dashboard/billing', '/dashboard/reports'];
+
+const WEBSITE_DETAIL = /^\/dashboard\/websites\/[^/]+\/?$/;
+
+export function isStandaloneRoute(pathname: string): boolean {
+  if (WEBSITE_DETAIL.test(pathname)) return true;
+  return STANDALONE_PREFIXES.some(
+    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
+  );
+}
+
 export interface DashboardShellProps {
   readonly user: UserDto;
   readonly memberships: readonly OrganizationMembershipDto[];
@@ -175,6 +203,84 @@ export function DashboardShell({
       </div>
     </div>
   );
+
+  /*
+   * The standalone layout: one column, no aside, no `lg:flex-row`.
+   *
+   * Navigation is not simply dropped. A page with no way back is a dead end, so
+   * the top bar keeps the three things the sidebar was actually load-bearing
+   * for — somewhere to go, which organization you are in, and who you are
+   * signed in as — in a 56px strip instead of a 256px column. Identical at
+   * every breakpoint, because there is no drawer to open.
+   */
+  if (isStandaloneRoute(pathname)) {
+    return (
+      <div className="flex min-h-dvh flex-col">
+        <header className="flex h-14 shrink-0 items-center gap-3 border-b px-4 sm:px-6">
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 rounded-md font-semibold tracking-tight outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          >
+            <Activity className="size-5 text-primary" aria-hidden="true" />
+            <span className="hidden sm:inline">{activeOrganizationName ?? 'SiteOps'}</span>
+          </Link>
+
+          {/* `flex-1` so the navigation claims the space left over rather than
+              only what its content needs — without it the account block on the
+              right squeezes it to nothing on a phone. */}
+          <nav
+            aria-label="Dashboard"
+            className="flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto"
+          >
+            {visibleItems.map(({ href, label, icon: Icon }) => {
+              const active = href === '/dashboard' ? pathname === href : pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  aria-current={active ? 'page' : undefined}
+                  title={label}
+                  className={cn(
+                    'flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1.5 text-sm transition-colors',
+                    active
+                      ? 'bg-accent font-medium text-accent-foreground'
+                      : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" aria-hidden="true" />
+                  {/* Labels collapse to icons on narrow screens so the whole
+                      set stays reachable without a horizontal scroll. */}
+                  <span className="hidden md:inline">{label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="flex shrink-0 items-center gap-2">
+            <div className="hidden w-56 sm:block">
+              <OrganizationSwitcher
+                memberships={memberships}
+                activeOrganizationId={activeOrganizationId}
+              />
+            </div>
+            {/*
+              Both controls were written for a 256px sidebar column and size
+              themselves to their container, so they need an explicit width
+              here or they take the whole bar and leave the navigation with
+              none of it.
+            */}
+            <div className="w-36 sm:w-52">
+              <AccountMenu user={user} permissions={permissions} />
+            </div>
+          </div>
+        </header>
+
+        {/* No `mx-auto`, no maximum: the whole viewport width, which is the
+            entire reason these routes are separated out. */}
+        <main className="min-w-0 flex-1">{children}</main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-dvh flex-col lg:flex-row">

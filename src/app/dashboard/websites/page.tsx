@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 
 import { ACTIVE_ORGANIZATION_COOKIE, resolveActiveOrganizationId } from '@/lib/active-organization';
 import { fetchSession } from '@/lib/auth';
+import { PageContainer } from '@/components/layout/page-container';
 import { WebsitesTable } from './websites-table';
 
 export const metadata: Metadata = {
@@ -29,7 +30,7 @@ export default async function WebsitesPage(): Promise<React.ReactElement> {
   const limits = limitsFor(active.organization.plan);
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+    <PageContainer>
       <header className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight">Websites</h1>
         <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
@@ -44,6 +45,6 @@ export default async function WebsitesPage(): Promise<React.ReactElement> {
         maxWebsites={limits.maxWebsites}
         planLabel={PLAN_LABELS[active.organization.plan]}
       />
-    </div>
+    </PageContainer>
   );
 }
