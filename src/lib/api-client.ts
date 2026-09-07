@@ -1,7 +1,7 @@
 import type { ApiErrorCode, ApiFieldError, ApiResponse } from '@/contracts';
 
 import { readActiveOrganizationCookie } from './active-organization';
-import { env } from './env';
+import { apiBaseUrl } from './api-base';
 
 /**
  * The single way this app talks to the API.
@@ -74,10 +74,13 @@ export async function apiRequest<TData>(
 
   let response: Response;
   try {
-    response = await fetch(`${env.NEXT_PUBLIC_API_URL}${path}`, {
+    response = await fetch(`${apiBaseUrl()}${path}`, {
       method,
-      // The session lives in an HttpOnly cookie, so it must be sent explicitly
-      // on cross-origin requests. It is never readable from JavaScript.
+      // The session lives in an HttpOnly cookie, never readable from
+      // JavaScript. Browser requests are same-origin through the `/api/*`
+      // rewrite, so this is already the default — it is stated because the
+      // whole session depends on the cookie travelling, and a silent default
+      // is a poor place for that to rest.
       credentials: 'include',
       headers: requestHeaders,
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),

@@ -8,6 +8,27 @@ import type { NextConfig } from 'next';
  * `src/lib/env.ts`.
  */
 
+/**
+ * Where `/api/*` is forwarded to.
+ *
+ * Read straight from the environment rather than through `src/lib/env.ts`: this
+ * file is evaluated by Next's own config loader, outside the module graph that
+ * validates browser configuration, and importing that module here would run its
+ * schema against a `process.env` that Next has not finished assembling.
+ */
+function apiOrigin(): string {
+  const value = process.env.NEXT_PUBLIC_API_URL;
+  if (!value) {
+    throw new Error(
+      'NEXT_PUBLIC_API_URL is required: it is the origin `/api/*` is proxied to. ' +
+        'Set it to the SiteOps API origin, e.g. https://siteops-server.onrender.com',
+    );
+  }
+  // A trailing slash would produce `//api/...` upstream, which some routers
+  // treat as a different path than the one the API actually serves.
+  return value.replace(/\/+$/, '');
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   /*
@@ -30,6 +51,25 @@ const nextConfig: NextConfig = {
    * one that states deliberate exceptions is worse than no file.
    */
   agentRules: false,
+  /*
+   * The API is served from this app's own origin.
+   *
+   * The browser calls `/api/*` here and Next forwards it to the SiteOps API, so
+   * the session cookie is set by, and sent back to, this host. Calling the API
+   * directly from the browser does not work across origins: the cookie is
+   * `HttpOnly` and `SameSite=Lax`, and a browser will not store a `Lax` cookie
+   * that arrives on a cross-site response. On Vercel and Render — different
+   * registrable domains — sign-in succeeded and the cookie was dropped on the
+   * floor, so `middleware.ts` saw no session and sent every visitor back to the
+   * sign-in page. See `src/lib/api-base.ts`.
+   *
+   * The upstream keeps the `/api` prefix because that is where the API mounts
+   * its own routes; this is a pass-through, not a remapping.
+   */
+  rewrites() {
+    return Promise.resolve([{ source: '/api/:path*', destination: `${apiOrigin()}/api/:path*` }]);
+  },
+
   // Returns a resolved promise rather than being `async`: Next requires a
   // Promise here, but there is nothing to await.
   headers() {

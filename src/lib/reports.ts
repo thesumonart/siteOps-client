@@ -9,8 +9,8 @@ import type {
   UpdateReportScheduleInput,
 } from '@/contracts';
 
+import { apiBaseUrl } from './api-base';
 import { apiRequest } from './api-client';
-import { env } from './env';
 
 /**
  * Generated reports and their schedules.
@@ -55,7 +55,7 @@ export async function deleteReport(reportId: string): Promise<void> {
  * constructed here.
  */
 export function reportDownloadUrl(reportId: string, format: ReportFormat): string {
-  return `${env.NEXT_PUBLIC_API_URL}/api/reports/${reportId}/download?format=${format}`;
+  return `${apiBaseUrl()}/api/reports/${reportId}/download?format=${format}`;
 }
 
 export async function fetchReportSchedules(): Promise<readonly ReportScheduleDto[]> {
