@@ -32,14 +32,26 @@ const PRESENTATION: Record<
 
 export interface MonitorStatusBadgeProps {
   readonly status: MonitorStatus;
+  /**
+   * Whether the monitor has ever produced a result.
+   *
+   * `unknown` reads as "Not yet run", which is true for a monitor just switched
+   * on and a lie for one that has run and failed — a run only moves the badge
+   * off `unknown` after several consecutive errors, so a monitor that has been
+   * erroring since yesterday sat there claiming it had never run, directly
+   * above the error message explaining why it had.
+   */
+  readonly hasRun?: boolean;
   readonly className?: string;
 }
 
 export function MonitorStatusBadge({
   status,
+  hasRun = false,
   className,
 }: MonitorStatusBadgeProps): React.ReactElement {
   const { icon: Icon, className: tone } = PRESENTATION[status];
+  const label = status === 'unknown' && hasRun ? 'No result yet' : MONITOR_STATUS_LABELS[status];
 
   return (
     <span
@@ -50,7 +62,7 @@ export function MonitorStatusBadge({
       )}
     >
       <Icon className="size-3" aria-hidden="true" />
-      {MONITOR_STATUS_LABELS[status]}
+      {label}
     </span>
   );
 }

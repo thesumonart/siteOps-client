@@ -14,6 +14,7 @@ import {
 import type * as React from 'react';
 
 import { RelativeTime } from '@/components/relative-time';
+import { formatExpiryDate, formatRemainingDays, remainingDays } from '@/lib/expiry';
 import { cn } from '@/lib/utils';
 
 /**
@@ -113,43 +114,79 @@ function FactList({
   );
 }
 
-function formatDate(iso: string | null): string {
-  return iso === null ? 'Unknown' : new Date(iso).toLocaleDateString();
-}
-
-function formatDays(days: number | null): string {
-  if (days === null) return 'Unknown';
-  if (days < 0) return `Expired ${String(Math.abs(days))} days ago`;
-  return `${String(days)} days`;
-}
-
 function SslFacts({ data }: { readonly data: SslCheckData }): React.ReactElement {
+  /*
+   * Recomputed from the expiry date rather than read from the record.
+   *
+   * `data.daysRemaining` is the count as it stood when the check ran, which is
+   * right for the stored history and wrong here — it is a day out by the next
+   * morning, and it stops moving entirely if the monitor stops running, which
+   * is exactly when someone most needs the real figure.
+   */
+  const remaining = remainingDays(data.validTo, data.daysRemaining);
+
+  const status = data.valid
+    ? 'Valid'
+    : data.selfSigned
+      ? 'Self-signed'
+      : !data.hostnameMatches
+        ? 'Hostname mismatch'
+        : 'Not trusted';
+
+  // The certificate's own name first, then the extra names it covers. Truncated
+  // because a shared certificate can carry a hundred and the panel is a summary.
+  const names = data.subjectAlternativeNames;
+  const coverage =
+    names.length === 0
+      ? (data.subject ?? 'Unknown')
+      : names.length <= 3
+        ? names.join(', ')
+        : `${names.slice(0, 3).join(', ')} +${String(names.length - 3)} more`;
+
   return (
     <FactList
       entries={[
+        ['SSL status', status],
         ['Issuer', data.issuer ?? 'Unknown'],
-        ['Expires', formatDate(data.validTo)],
-        ['Days remaining', formatDays(data.daysRemaining)],
-        ['Protocol', data.protocol ?? 'Unknown'],
-        ['Key', data.keyAlgorithm ?? 'Unknown'],
+        ['Valid from', formatExpiryDate(data.validFrom)],
+        ['Valid until', formatExpiryDate(data.validTo)],
+        ['Days remaining', formatRemainingDays(remaining)],
         ['Covers hostname', data.hostnameMatches ? 'Yes' : 'No'],
+        ['Certificate names', coverage],
+        ['TLS', [data.protocol, data.keyAlgorithm].filter(Boolean).join(' · ') || 'Unknown'],
       ]}
     />
   );
 }
 
 function DomainFacts({ data }: { readonly data: DomainCheckData }): React.ReactElement {
+  const remaining = remainingDays(data.expiresAt, data.daysRemaining);
+
+  /*
+   * The registry's EPP status codes, which are the only authoritative statement
+   * about what state a registration is in. Shown verbatim rather than
+   * interpreted: `clientHold` and `pendingDelete` mean specific things a
+   * registrar's support desk will ask about by name.
+   */
+  const statuses =
+    data.statuses.length === 0
+      ? 'Not published'
+      : data.statuses.slice(0, 3).join(', ') +
+        (data.statuses.length > 3 ? ` +${String(data.statuses.length - 3)} more` : '');
+
   return (
     <FactList
       entries={[
-        ['Domain', data.domain],
-        ['Registrar', data.registrar ?? 'Unknown'],
-        ['Expires', formatDate(data.expiresAt)],
-        ['Days remaining', formatDays(data.daysRemaining)],
-        ['Registered', formatDate(data.registeredAt)],
+        ['Domain', data.domain || 'Unknown'],
+        ['Registrar', data.registrar ?? 'Unavailable'],
+        ['Registered', formatExpiryDate(data.registeredAt)],
+        ['Expires', formatExpiryDate(data.expiresAt)],
+        ['Days remaining', formatRemainingDays(remaining)],
+        ['Registry status', statuses],
         // Named so an operator can tell a structured RDAP answer from a parsed
-        // WHOIS one when a date looks wrong.
-        ['Source', data.source],
+        // WHOIS one when a date looks wrong. `none` means no registry answered,
+        // which is why every field above it reads as unavailable.
+        ['Source', data.source === 'none' ? 'No registry answered' : data.source],
       ]}
     />
   );

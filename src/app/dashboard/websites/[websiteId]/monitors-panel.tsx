@@ -24,10 +24,53 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useEntitlements } from '@/hooks/use-entitlements';
 import { ApiError } from '@/lib/api-client';
+import { formatRemainingDays, remainingDays } from '@/lib/expiry';
 import { fetchMonitors, runMonitorNow, updateMonitor } from '@/lib/monitors';
 import { queryKeys } from '@/lib/query-keys';
 import { MonitorConfigDialog } from './monitor-config-dialog';
 import { MonitorResultDetail } from './monitor-result-detail';
+
+/**
+ * A one-line summary whose numbers are current, for the monitors that carry a
+ * countdown.
+ *
+ * `lastSummary` is prose the server wrote when the check ran — "31 days
+ * remaining" — and it is a day stale by the next morning and frozen entirely if
+ * the monitor stops running. That is precisely when a certificate countdown
+ * matters most, so the two monitors with an expiry date get their line rebuilt
+ * from the date itself.
+ *
+ * Returns null for everything else, and for a run that produced no date, so the
+ * caller falls back to the server's own wording rather than inventing one.
+ */
+function liveSummary(monitor: MonitorDto): string | null {
+  const result = monitor.latestResult;
+  if (!result) return null;
+
+  if (result.data.type === 'ssl') {
+    const remaining = remainingDays(result.data.validTo, result.data.daysRemaining);
+    if (remaining === null) return null;
+
+    const issuer = result.data.issuer ? `Issued by ${result.data.issuer}` : 'Certificate';
+    return remaining.days < 0
+      ? `${issuer} — ${formatRemainingDays(remaining).toLowerCase()}.`
+      : `${issuer}, ${formatRemainingDays(remaining)} remaining.`;
+  }
+
+  if (result.data.type === 'domain') {
+    const remaining = remainingDays(result.data.expiresAt, result.data.daysRemaining);
+    if (remaining === null) return null;
+
+    const registrar = result.data.registrar
+      ? `Registered with ${result.data.registrar}`
+      : 'Registration';
+    return remaining.days < 0
+      ? `${registrar} — ${formatRemainingDays(remaining).toLowerCase()}.`
+      : `${registrar}, ${formatRemainingDays(remaining)} remaining.`;
+  }
+
+  return null;
+}
 
 export interface MonitorsPanelProps {
   readonly organizationId: string;
@@ -147,11 +190,18 @@ export function MonitorsPanel({
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-medium">{MONITOR_TYPE_LABELS[monitor.type]}</p>
-                      {monitor.enabled ? <MonitorStatusBadge status={monitor.status} /> : null}
+                      {monitor.enabled ? (
+                        <MonitorStatusBadge
+                          status={monitor.status}
+                          hasRun={monitor.lastRunAt !== null}
+                        />
+                      ) : null}
                     </div>
                     <p className="mt-0.5 max-w-prose text-xs text-pretty text-muted-foreground">
-                      {monitor.enabled && monitor.lastSummary
-                        ? monitor.lastSummary
+                      {monitor.enabled
+                        ? (liveSummary(monitor) ??
+                          monitor.lastSummary ??
+                          MONITOR_TYPE_DESCRIPTIONS[monitor.type])
                         : MONITOR_TYPE_DESCRIPTIONS[monitor.type]}
                     </p>
                     {monitor.enabled ? (
