@@ -18,12 +18,13 @@ blob-report/
 .playwright/
 
 # Environment — never commit real secrets, only .env.example
+#
+# Everything is matched and the example is added back, rather than listing the
+# names in use: the previous list enumerated `.env.local`, `.env.production` and
+# four others, so a file named anything else — `.env.prod`, say — was tracked by
+# default. An ignore rule for secrets has to fail closed.
 .env
-.env.local
-.env.*.local
-.env.development
-.env.production
-.env.test
+.env.*
 !.env.example
 
 # Logs
