@@ -11,6 +11,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { MonitoringFreshness } from '@/components/monitoring-freshness';
 import { RelativeTime } from '@/components/relative-time';
 import { StatusBadge } from '@/components/status-badge';
 import { Alert } from '@/components/ui/alert';
@@ -91,6 +92,14 @@ export function Overview({ organizationId, canAddWebsite }: OverviewProps): Reac
 
   return (
     <div className="grid gap-6">
+      {/* Above the numbers, not below them: if they are stale, that is the
+          first thing someone needs to know about them. */}
+      <MonitoringFreshness
+        lastCheckAt={data.lastCheckAt}
+        shortestIntervalSeconds={data.shortestIntervalSeconds}
+        monitoredWebsites={data.totalWebsites - data.paused}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           label="Websites"
