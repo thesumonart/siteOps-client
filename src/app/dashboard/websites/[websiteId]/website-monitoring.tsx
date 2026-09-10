@@ -15,6 +15,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
+import { AbsoluteTime } from '@/components/absolute-time';
 import { RelativeTime } from '@/components/relative-time';
 import { UptimeChart } from '@/components/uptime-chart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -235,7 +236,7 @@ export function WebsiteMonitoring({
               <thead>
                 <tr className="border-b text-left text-xs text-muted-foreground">
                   <th scope="col" className="px-5 py-2 font-medium">
-                    When
+                    Checked at
                   </th>
                   <th scope="col" className="px-5 py-2 font-medium">
                     Result
@@ -263,8 +264,8 @@ function CheckRow({ check }: { readonly check: WebsiteCheckDto }): React.ReactEl
 
   return (
     <tr>
-      <td className="px-5 py-2 whitespace-nowrap">
-        <RelativeTime iso={check.checkedAt} />
+      <td className="tabular-figures px-5 py-2 text-xs whitespace-nowrap">
+        <AbsoluteTime iso={check.checkedAt} />
       </td>
       <td className="px-5 py-2">
         <span className={cn('text-xs font-medium', succeeded ? '' : 'text-status-down')}>
